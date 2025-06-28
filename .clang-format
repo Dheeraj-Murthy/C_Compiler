@@ -1,0 +1,38 @@
+# .clang-format for C development
+
+BasedOnStyle: LLVM
+Language: C
+
+# Use tabs with width of 4
+UseTab: Never
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+
+# Control line breaking
+BreakBeforeBraces: Allman        # Makes braces more readable for C
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortLoopsOnASingleLine: false
+ColumnLimit: 100                 # Increase line length limit
+IndentCaseLabels: true
+IndentGotoLabels: false
+IndentPPDirectives: AfterHash
+SortIncludes: false
+
+# Control spacing
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpaceAfterCStyleCast: true
+SpaceBeforeAssignmentOperators: true
+
+# Comment formatting
+CommentPragmas: '^ IWYU pragma:'
+
+# Misc
+KeepEmptyLinesAtTheStartOfBlocks: false
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# C specific
+AlwaysBreakAfterReturnType: None
