@@ -1,14 +1,25 @@
 #include "lexer.h"
+#include "parser.h"
 
-int main()
-{
-    FILE* file;
-    file = fopen("test.bling", "r");
-    Token** tokens = lexer(file);
-    for (int i = 0; i < 12 && tokens[i]->type != END_TOKEN; i++)
-    {
-        print_token(tokens[i]);
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        printf("Incorrect syntax\nCorrect syntax: %s <filename.bling>\n", argv[0]);
+        exit(1);
     }
+    FILE* file;
+    file = fopen(argv[1], "r");
+
+    if (!file) {
+        printf("Error: File not found\n");
+        exit(1);
+    }
+
+    Token** tokens = lexer(file);
+    parser(tokens);
 
     free_tokens(tokens);
 }

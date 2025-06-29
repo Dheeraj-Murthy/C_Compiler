@@ -1,5 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
+
 #include <stdio.h>
 
 typedef enum {
@@ -7,6 +8,7 @@ typedef enum {
   KEYWORD,
   SEPARATOR,
   END_TOKEN,
+  BEGINNING,
 } TokenType;
 
 typedef struct {
@@ -15,9 +17,9 @@ typedef struct {
 } Token;
 
 void print_token(Token *token);
-Token *generate_number(FILE *file);
-Token *generate_keyword(FILE *file);
-Token *generate_separator(FILE *file);
+Token *generate_number(const char **cursor);
+Token *generate_keyword(const char **cursor);
+Token *generate_separator(const char **cursor);
 Token **lexer(FILE *file);
 void free_tokens(Token **tokens);
 

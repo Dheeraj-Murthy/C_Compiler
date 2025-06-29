@@ -1,136 +1,123 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void print_token(Token* token)
-{
-    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN"};
+void print_token(Token* token) {
+    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN", "BEGINNING"};
     printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token->type], token->word);
 }
 
-Token* generate_number(FILE* file)
-{
+Token* generate_number(const char** cursor_ptr) {
+    const char* cursor = *cursor_ptr;
     Token* token = malloc(sizeof(Token));
     token->type = INT;
-    char current;
+
+    char buffer[32];
     int idx = 0;
-    char* nums = malloc(sizeof(char) * (10));
 
-    // read in the literal
-    while ((current = fgetc(file)) != EOF && isdigit(current))
-    {
-        nums[idx] = current;
-        idx++;
+    while (isdigit(*cursor)) {
+        buffer[idx++] = *cursor;
+        cursor++;
     }
-    nums[idx] = '\0';
-    ungetc(current, file);
 
-    // assign the value
-    token->word = malloc((idx + 1) * sizeof(char));
-    strcpy(token->word, nums);
-    free(nums);
+    buffer[idx] = '\0';
+
+    token->word = malloc(idx + 1);
+    strcpy(token->word, buffer);
+
+    *cursor_ptr = cursor;
     return token;
 }
 
-Token* generate_keyword(FILE* file)
-{
+Token* generate_keyword(const char** cursor_ptr) {
+    const char* cursor = *cursor_ptr;
     Token* token = malloc(sizeof(Token));
     token->type = KEYWORD;
-    char* word;
-    word = malloc(sizeof(char) * 10);
-    int index = 0;
-    char current;
 
-    // recover the keyword
-    while ((current = fgetc(file)) != EOF && isalpha(current))
-    {
-        word[index] = current;
-        index++;
+    char buffer[64];
+    int idx = 0;
+
+    while (isalpha(*cursor)) {
+        buffer[idx++] = *cursor;
+        cursor++;
     }
-    ungetc(current, file);
 
-    // malloc token and copy the word into it
-    token->word = malloc(sizeof(char) * (index + 1));
-    strcpy(token->word, word);
-    free(word);
-    token->word[index] = '\0';
-    // set the type of token
+    buffer[idx] = '\0';
 
-    if (strcmp(token->word, "exit") == 0)
-    {
-        // token->type = KEYWORD;
-        //
-    }
+    token->word = malloc(idx + 1);
+    strcpy(token->word, buffer);
+
+    *cursor_ptr = cursor;
     return token;
 }
 
-Token* generate_separator(FILE* file)
-{
+Token* generate_separator(const char** cursor_ptr) {
+    const char* cursor = *cursor_ptr;
     Token* token = malloc(sizeof(Token));
     token->type = SEPARATOR;
-    char temp = fgetc(file);
-    token->word = malloc(sizeof(char) * 2);
-    token->word[0] = temp;
+
+    token->word = malloc(2);
+    token->word[0] = *cursor;
     token->word[1] = '\0';
+
+    *cursor_ptr = cursor + 1;
     return token;
 }
 
-Token** lexer(FILE* file)
-{
-    char current;
-    size_t capacity = 12;
-    Token** tokens = malloc(sizeof(Token*) * capacity);
+Token** lexer(FILE* file) {
+    size_t capacity = 16;
     size_t token_index = 0;
+    Token** tokens = malloc(sizeof(Token*) * capacity);
 
-    while ((current = fgetc(file)) != EOF)
-    {
-        Token* test_token = NULL;
-        if (current == ';')
-        {
-            ungetc(current, file);
-            test_token = generate_separator(file);
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file)) {
+        const char* cursor = line;
+
+        while (*cursor != '\0') {
+            if (isspace(*cursor)) {
+                cursor++;
+                continue;
+            }
+
+            Token* token = NULL;
+
+            if (*cursor == ';' || *cursor == '(' || *cursor == ')') {
+                token = generate_separator(&cursor);
+            } else if (isdigit(*cursor)) {
+                token = generate_number(&cursor);
+            } else if (isalpha(*cursor)) {
+                token = generate_keyword(&cursor);
+            } else {
+                // unknown character, skip it
+                printf("Skipping unknown char: %c\n", *cursor);
+                cursor++;
+                continue;
+            }
+
+            tokens[token_index++] = token;
+
+            if (token_index >= capacity) {
+                capacity *= 2;
+                tokens = realloc(tokens, sizeof(Token*) * capacity);
+            }
         }
-        else if (current == '(')
-        {
-            ungetc(current, file);
-            test_token = generate_separator(file);
-        }
-        else if (current == ')')
-        {
-            ungetc(current, file);
-            test_token = generate_separator(file);
-        }
-        else if (isdigit(current))
-        {
-            ungetc(current, file);
-            test_token = generate_number(file);
-        }
-        else if (isalpha(current))
-        {
-            ungetc(current, file);
-            test_token = generate_keyword(file);
-        }
-        else
-        {
-            printf("the problem char: %c", current);
-            continue;
-        }
-        tokens[token_index++] = test_token;
-        // free(test_token);
     }
+
     Token* end_token = malloc(sizeof(Token));
     end_token->type = END_TOKEN;
+    end_token->word = NULL;
     tokens[token_index] = end_token;
+
     return tokens;
 }
 
-void free_tokens(Token** tokens)
-{
+void free_tokens(Token** tokens) {
     int i;
-    for (i = 0; tokens[i]->type != END_TOKEN; i++)
-    {
+    for (i = 0; tokens[i]->type != END_TOKEN; i++) {
         free(tokens[i]->word);
         free(tokens[i]);
     }
