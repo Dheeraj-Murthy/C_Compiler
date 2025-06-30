@@ -1,4 +1,3 @@
-.section __TEXT,__text
 .global _start
 _start:
 	mov X0, #1
