@@ -4,22 +4,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Node {
-    char* value;
-    TokenType type;
-    struct Node* right;
-    struct Node* left;
-} Node;
-
 void print_tree(Node* current, int depth) {
     if (!current)
         return;
+    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN", "BEGINNING"};
     for (int i = 0; i < depth; i++)
         printf("  ");
-    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN", "BEGINNING"};
     printf("Value: %s || Type: %s\n", current->value, TokenTypeNames[current->type]);
-    print_tree(current->left, depth + 1);
-    print_tree(current->right, depth + 1);
+    if (current->left) {
+        for (int i = 0; i < depth + 1; i++)
+            printf("  ");
+        printf("left:");
+        print_tree(current->left, depth + 2);
+    }
+    if (current->right) {
+        for (int i = 0; i < depth + 1; i++)
+            printf("  ");
+        printf("right:");
+        print_tree(current->right, depth + 2);
+    }
 }
 
 Node* create_Node(char* val, TokenType type) {
@@ -46,6 +49,7 @@ void expect(Token** tokens, int* i, TokenType type, const char* word) {
         exit(1);
     }
 }
+
 Node* parse_exit(Token** tokens, int* i) {
     Node* exit_node = create_Node(tokens[*i]->word, KEYWORD);
     (*i)++;
@@ -78,14 +82,14 @@ Node* parse_exit(Token** tokens, int* i) {
     return exit_node;
 }
 
-Token* parser(Token** tokens) {
+Node* parser(Token** tokens) {
     Node* root = create_Node("PROGRAM", BEGINNING);
     Node* current_node = root;
 
     int i = 0;
     while (tokens[i]->type != END_TOKEN) {
         if (current_node == root) {
-            printf("start");
+            // printf("start");
         } else if (current_node == NULL) {
             break;
         }
@@ -109,6 +113,6 @@ Token* parser(Token** tokens) {
         }
         // i++;
     }
-    print_tree(root, 0);
-    return tokens[i];
+    // print_tree(root, 0);
+    return root;
 }

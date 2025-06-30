@@ -3,28 +3,22 @@ TARGET = build/main
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
 
-SRC = main.c lexer.c parser.c
-OBJ = $(SRC:%.c=build/%.o)
+SRC = main.c lexer.c parser.c codegenerator.c
+OBJ = main.o
+FILE ?= test.bling
 
-FILE ?= input.txt
-
-all: $(TARGET)
-
-# Link object files
-$(TARGET): $(OBJ)
-	@mkdir -p build
-	$(CC) $(OBJ) -o $(TARGET)
+all: run
 
 # Compile source files into build/
-build/%.o: %.c
+comp: $(SRC)
 	@mkdir -p build
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS)  -o $(OBJ) $(SRC) 
 
 # Clean build artifacts
 clean:
 	rm -rf build
 
 # Run the program with input file
-run: all
+run: comp
 	@echo "Running with input file: $(FILE)"
 	@./$(TARGET) $(FILE)

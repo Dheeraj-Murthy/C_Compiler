@@ -1,5 +1,5 @@
+#include "codegenerator.h"
 #include "lexer.h"
-#include "parser.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -19,7 +19,8 @@ int main(int argc, char* argv[]) {
     }
 
     Token** tokens = lexer(file);
-    parser(tokens);
+    Node* root = parser(tokens);
+    generate_code(root);
 
     free_tokens(tokens);
 }
