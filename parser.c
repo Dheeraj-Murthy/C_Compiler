@@ -7,7 +7,8 @@
 void print_tree(Node* current, int depth) {
     if (!current)
         return;
-    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN", "BEGINNING"};
+    const char* TokenTypeNames[] = {"INT",      "KEYWORD",   "SEPARATOR",
+                                    "OPERATOR", "END_TOKEN", "BEGINNING"};
     for (int i = 0; i < depth; i++)
         printf("  ");
     printf("Value: %s || Type: %s\n", current->value, TokenTypeNames[current->type]);
@@ -36,6 +37,33 @@ Node* create_Node(char* val, TokenType type) {
     node->left = NULL;
     node->right = NULL;
     return node;
+}
+
+void oper_tree(Token** tokens, int* i, Node* par) {
+    expect(tokens, i, OPERATOR, "+");
+    Node* opr_node = create_Node(tokens[*i]->word, OPERATOR);
+    if (par->right == NULL) {
+        opr_node->left = par->left;
+        par->left = opr_node;
+    } else {
+        opr_node->left = par->right;
+        par->right = opr_node;
+    }
+    (*i)++;
+    par = opr_node;
+
+    // Expect literal
+    if (tokens[*i]->type != INT) {
+        print_error("Expected integer literal after OPERATOR");
+        exit(1);
+    }
+    Node* expr_node = create_Node(tokens[*i]->word, INT);
+    par->right = expr_node;
+    (*i)++;
+
+    if (tokens[*i]->type != END_TOKEN && tokens[*i]->type == OPERATOR) {
+        oper_tree(tokens, i, par);
+    }
 }
 
 void print_error(char* msg) {
@@ -67,6 +95,10 @@ Node* parse_exit(Token** tokens, int* i) {
     open_paren->left = expr_node;
     (*i)++;
 
+    if (tokens[*i]->type != END_TOKEN && tokens[*i]->type == OPERATOR) {
+        oper_tree(tokens, i, open_paren);
+    }
+
     // Expect )
     expect(tokens, i, SEPARATOR, ")");
     Node* close_paren = create_Node(tokens[*i]->word, SEPARATOR);
@@ -89,7 +121,7 @@ Node* parser(Token** tokens) {
     int i = 0;
     while (tokens[i]->type != END_TOKEN) {
         if (current_node == root) {
-            // printf("start");
+            printf("start");
         } else if (current_node == NULL) {
             break;
         }
@@ -115,6 +147,6 @@ Node* parser(Token** tokens) {
         }
         // i++;
     }
-    // print_tree(root, 0);
+    print_tree(root, 0);
     return root;
 }

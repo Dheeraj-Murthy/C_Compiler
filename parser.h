@@ -10,10 +10,11 @@ typedef struct Node {
 } Node;
 
 void print_tree(Node *current, int depth);
-Node *create_Node(char *val, TokenType type);
+Node* create_Node(char *val, TokenType type);
 void print_error(char *msg);
 void expect(Token **tokens, int *i, TokenType type, const char *word);
-Node *parse_exit(Token **tokens, int *i);
-Node *parser(Token **tokens);
+Node* parse_exit(Token **tokens, int *i);
+Node* parser(Token **tokens);
+Node* create_Node(char* val, TokenType type);
 
 #endif // skip if defined

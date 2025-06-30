@@ -1,6 +1,9 @@
 #include "codegenerator.h"
+#include "lexer.h"
 
 #include <ctype.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -18,8 +21,13 @@ int main(int argc, char* argv[]) {
     }
 
     Token** tokens = lexer(file);
+    fclose(file);
     Node* root = parser(tokens);
-    generate_code(root);
+    // generate_code(root);
+
+    for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
+        print_token(tokens[i]);
+    }
 
     free_tokens(tokens);
 }
