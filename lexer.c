@@ -6,7 +6,7 @@
 #include <string.h>
 
 void print_token(Token* token) {
-    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "END_TOKEN", "BEGINNING"};
+    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "OPERATOR", "END_TOKEN", "BEGINNING"};
     printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token->type], token->word);
 }
 
@@ -54,10 +54,10 @@ Token* generate_keyword(const char** cursor_ptr) {
     return token;
 }
 
-Token* generate_separator(const char** cursor_ptr) {
+Token* generate_separator_operator(const char** cursor_ptr, TokenType type) {
     const char* cursor = *cursor_ptr;
     Token* token = malloc(sizeof(Token));
-    token->type = SEPARATOR;
+    token->type = type;
 
     token->word = malloc(2);
     token->word[0] = *cursor;
@@ -86,7 +86,9 @@ Token** lexer(FILE* file) {
             Token* token = NULL;
 
             if (*cursor == ';' || *cursor == '(' || *cursor == ')') {
-                token = generate_separator(&cursor);
+                token = generate_separator_operator(&cursor, SEPARATOR);
+            } else if(*cursor == '+') {
+                token = generate_separator_operator(&cursor, OPERATOR);
             } else if (isdigit(*cursor)) {
                 token = generate_number(&cursor);
             } else if (isalpha(*cursor)) {

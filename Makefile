@@ -1,10 +1,10 @@
-TARGET = build/main
+TARGET = build/main.o
 
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
 
 SRC = main.c lexer.c parser.c codegenerator.c
-OBJ = main.o
+OBJ = build/main.o
 FILE ?= test.bling
 
 all: run

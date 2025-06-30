@@ -1,6 +1,7 @@
-#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "codegenerator.h"
 
 void traverse_tree(Node* cur) {
     if (cur == NULL) {

@@ -106,6 +106,8 @@ Node* parser(Token** tokens) {
                 break;
             case SEPARATOR:
                 break;
+            case OPERATOR:
+                break;
             case END_TOKEN:
                 break;
             case BEGINNING:
