@@ -26,7 +26,7 @@ typedef enum { ADD, SUB, DIV, MUL, MOD, NOT_OPERATOR } OperatorType;
 
 void create_label(FILE* file, int num) {
     label_number--;
-    fprintf(file, "label%d\n", num);
+    fprintf(file, "label%d:\n", num);
 }
 
 void create_end_loop(FILE* file) {
@@ -102,6 +102,7 @@ static int log_and_free_out_of_scope(void* const context, struct hashmap_element
 
 void push(char* reg, FILE* file) {
     fprintf(file, " push %s\n", reg);
+    stack_size++;
 }
 void push_var(size_t stack_pos, char* var_name, FILE* file) {
     fprintf(file, " push QWORD [rsp + %zu]\n", (stack_size - stack_pos) * 8);
