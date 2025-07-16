@@ -3,7 +3,7 @@ TARGET = build/main.o
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
 
-SRC = main.c lexer.c parser.c codegenerator.c
+SRC = main.c lexer.c parser.c codegenerator.c utils/hashmap.c
 OBJ = build/main.o
 FILE ?= test.bling
 

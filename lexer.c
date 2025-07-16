@@ -5,114 +5,178 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_token(Token* token) {
-    const char* TokenTypeNames[] = {"INT", "KEYWORD", "SEPARATOR", "OPERATOR", "END_TOKEN", "BEGINNING"};
-    printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token->type], token->word);
+size_t line_number = 0;
+
+void print_token(Token token) {
+    const char* TokenTypeNames[] = {
+        "BEGINNING",  // 0
+        "INT",        // 1
+        "KEYWORD",    // 2
+        "SEPARATOR",  // 3
+        "OPERATOR",   // 4
+        "IDENTIFIER", // 5
+        "STRING",     // 6
+        "COMP",       // 7
+        "END_TOKEN"   // 8
+    };
+    printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token.type], token.word);
 }
 
-Token* generate_number(const char** cursor_ptr) {
-    const char* cursor = *cursor_ptr;
+Token* generate_number(char* current, int* current_index) {
     Token* token = malloc(sizeof(Token));
     token->type = INT;
-
-    char buffer[32];
-    int idx = 0;
-
-    while (isdigit(*cursor)) {
-        buffer[idx++] = *cursor;
-        cursor++;
+    token->line_num = line_number;
+    char* word = malloc(sizeof(char) * 8);
+    int word_index = 0;
+    while (isdigit(current[*current_index]) && current[*current_index] != '\0') {
+        // if (!isdigit(current[*current_index])) {
+        //     break;
+        // }
+        word[word_index] = current[*current_index];
+        word_index++;
+        *current_index += 1;
     }
-
-    buffer[idx] = '\0';
-
-    token->word = malloc(idx + 1);
-    strcpy(token->word, buffer);
-
-    *cursor_ptr = cursor;
+    word[word_index] = '\0';
+    token->word = word;
     return token;
 }
 
-Token* generate_keyword(const char** cursor_ptr) {
-    const char* cursor = *cursor_ptr;
+Token* generate_keyword_or_identifier(char* current, int* current_index) {
     Token* token = malloc(sizeof(Token));
-    token->type = KEYWORD;
-
-    char buffer[64];
-    int idx = 0;
-
-    while (isalpha(*cursor)) {
-        buffer[idx++] = *cursor;
-        cursor++;
+    char* keyword = malloc(sizeof(char) * 10);
+    token->line_num = line_number;
+    int keyword_index = 0;
+    while (isalpha(current[*current_index]) && current[*current_index] != '\0') {
+        keyword[keyword_index] = current[*current_index];
+        keyword_index++;
+        *current_index += 1;
     }
-
-    buffer[idx] = '\0';
-
-    token->word = malloc(idx + 1);
-    strcpy(token->word, buffer);
-
-    *cursor_ptr = cursor;
+    keyword[keyword_index] = '\0';
+    token->word = malloc(strlen(keyword) + 1);
+    strcpy(token->word, keyword);
+    free(keyword);
+    if (strcmp(token->word, "exit") == 0) {
+        token->type = KEYWORD;
+    } else if (strcmp(token->word, "int") == 0) {
+        token->type = KEYWORD;
+    } else if (strcmp(token->word, "if") == 0) {
+        token->type = KEYWORD;
+    } else if (strcmp(token->word, "while") == 0) {
+        token->type = KEYWORD;
+    } else if (strcmp(token->word, "write") == 0) {
+        token->type = KEYWORD;
+    } else if (strcmp(token->word, "eq") == 0) {
+        token->type = COMP;
+    } else if (strcmp(token->word, "neq") == 0) {
+        token->type = COMP;
+    } else if (strcmp(token->word, "less") == 0) {
+        token->type = COMP;
+    } else if (strcmp(token->word, "greater") == 0) {
+        token->type = COMP;
+    } else {
+        token->type = IDENTIFIER;
+    }
     return token;
 }
 
-Token* generate_separator_operator(const char** cursor_ptr, TokenType type) {
-    const char* cursor = *cursor_ptr;
+Token* generate_string_token(char* current, int* current_index) {
     Token* token = malloc(sizeof(Token));
-    token->type = type;
+    token->line_num = line_number;
+    char* value = malloc(sizeof(char) * 64);
+    int value_index = 0;
+    (*current_index)++;
+    while (current[*current_index] != '"') {
+        value[value_index] = current[*current_index];
+        value_index++;
+        (*current_index)++;
+    }
+    value[value_index] = '\0';
+    token->type = STRING;
+    token->word = malloc(strlen(value) + 1);
+    strcpy(token->word, value);
+    return token;
+}
 
-    token->word = malloc(2);
-    token->word[0] = *cursor;
+Token* generate_separator_or_operator(char* current, int* current_index, TokenType type) {
+    Token* token = malloc(sizeof(Token));
+    token->word = malloc(sizeof(char) * 2);
+    token->word[0] = current[*current_index];
     token->word[1] = '\0';
-
-    *cursor_ptr = cursor + 1;
+    token->type = type;
+    token->line_num = line_number;
+    (*current_index)++;
     return token;
 }
+
+size_t tokens_index;
 
 Token** lexer(FILE* file) {
-    size_t capacity = 16;
-    size_t token_index = 0;
-    Token** tokens = malloc(sizeof(Token*) * capacity);
+    int length;
+    char* current = 0;
 
-    char line[1024];
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-    while (fgets(line, sizeof(line), file)) {
-        const char* cursor = line;
+    current = malloc(sizeof(char) * (length + 1));
+    fread(current, 1, length, file);
 
-        while (*cursor != '\0') {
-            if (isspace(*cursor)) {
-                cursor++;
-                continue;
-            }
+    fclose(file);
+    // printf("Entire File: %s", current);
 
-            Token* token = NULL;
+    current[length] = '\0';
+    int current_index = 0;
 
-            if (*cursor == ';' || *cursor == '(' || *cursor == ')') {
-                token = generate_separator_operator(&cursor, SEPARATOR);
-            } else if(*cursor == '+') {
-                token = generate_separator_operator(&cursor, OPERATOR);
-            } else if (isdigit(*cursor)) {
-                token = generate_number(&cursor);
-            } else if (isalpha(*cursor)) {
-                token = generate_keyword(&cursor);
-            } else {
-                // unknown character, skip it
-                printf("Skipping unknown char: %c\n", *cursor);
-                cursor++;
-                continue;
-            }
+    int number_of_tokens = 50;
+    int tokens_size = 0;
+    Token** tokens = malloc(sizeof(Token*) * number_of_tokens);
+    tokens_index = 0;
 
-            tokens[token_index++] = token;
-
-            if (token_index >= capacity) {
-                capacity *= 2;
-                tokens = realloc(tokens, sizeof(Token*) * capacity);
-            }
+    while (current[current_index] != '\0') {
+        Token* token = NULL;
+        tokens_size++;
+        if (tokens_size > number_of_tokens) {
+            number_of_tokens *= 2;
+            tokens = realloc(tokens, sizeof(Token) * number_of_tokens);
         }
+        if (current[current_index] == '(' || current[current_index] == ')' ||
+            current[current_index] == ';' || current[current_index] == ',' ||
+            current[current_index] == '{' || current[current_index] == '}') {
+            // printf("was sep");
+            token = generate_separator_or_operator(current, &current_index, SEPARATOR);
+            tokens[tokens_index] = token;
+        } else if (current[current_index] == '+' || current[current_index] == '-' ||
+                   current[current_index] == '*' || current[current_index] == '/' ||
+                   current[current_index] == '=' || current[current_index] == '%') {
+            // printf("was op");
+            token = generate_separator_or_operator(current, &current_index, OPERATOR);
+            tokens[tokens_index] = token;
+        } else if (current[current_index] == '"') {
+            token = generate_string_token(current, &current_index);
+            tokens[tokens_index] = token;
+        } else if (isdigit(current[current_index])) {
+            // printf("was dig");
+            token = generate_number(current, &current_index);
+            tokens[tokens_index] = token;
+        } else if (isalpha(current[current_index])) {
+            // printf("was key/ident");
+            token = generate_keyword_or_identifier(current, &current_index);
+            tokens[tokens_index] = token;
+        } else {
+            // printf("unidentified current char: %c\n", current[current_index]);
+            tokens_index--;
+            current_index++;
+        }
+        // if (token != NULL)
+        //     print_token(*token);
+        // printf("current char: %c\n", current[current_index]);
+        tokens_index++;
     }
-
-    Token* end_token = malloc(sizeof(Token));
-    end_token->type = END_TOKEN;
-    end_token->word = NULL;
-    tokens[token_index] = end_token;
+    tokens[tokens_index] = malloc(sizeof(Token));
+    tokens[tokens_index]->word = malloc(2);
+    // strcpy(tokens[tokens_index]->word, "\0");
+    tokens[tokens_index]->word[0] = '\0';
+    tokens[tokens_index]->type = END_TOKEN;
 
     return tokens;
 }
