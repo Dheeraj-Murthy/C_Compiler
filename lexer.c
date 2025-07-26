@@ -108,11 +108,10 @@ Token* generate_separator_or_operator(char* current, int* current_index, TokenTy
     return token;
 }
 
-size_t tokens_index;
-
 Token** lexer(FILE* file) {
     int length;
     char* current = 0;
+    size_t tokens_index;
 
     fseek(file, 0, SEEK_END);
     length = ftell(file);
@@ -133,51 +132,78 @@ Token** lexer(FILE* file) {
     tokens_index = 0;
 
     while (current[current_index] != '\0') {
+        printf("current char: %c\n", current[current_index]);
         Token* token = NULL;
         tokens_size++;
         if (tokens_size > number_of_tokens) {
             number_of_tokens *= 2;
-            tokens = realloc(tokens, sizeof(Token) * number_of_tokens);
+            tokens = realloc(tokens, sizeof(Token*) * number_of_tokens);
         }
         if (current[current_index] == '(' || current[current_index] == ')' ||
             current[current_index] == ';' || current[current_index] == ',' ||
             current[current_index] == '{' || current[current_index] == '}') {
-            // printf("was sep");
+            printf("was sep");
             token = generate_separator_or_operator(current, &current_index, SEPARATOR);
             tokens[tokens_index] = token;
         } else if (current[current_index] == '+' || current[current_index] == '-' ||
                    current[current_index] == '*' || current[current_index] == '/' ||
                    current[current_index] == '=' || current[current_index] == '%') {
-            // printf("was op");
+            printf("was op");
             token = generate_separator_or_operator(current, &current_index, OPERATOR);
             tokens[tokens_index] = token;
         } else if (current[current_index] == '"') {
+            printf("was str");
             token = generate_string_token(current, &current_index);
             tokens[tokens_index] = token;
+        } else if (current[current_index] == ' ') {
+            printf("was space");
+            current_index++;
+            continue;
         } else if (isdigit(current[current_index])) {
-            // printf("was dig");
+            printf("was dig");
             token = generate_number(current, &current_index);
             tokens[tokens_index] = token;
         } else if (isalpha(current[current_index])) {
-            // printf("was key/ident");
+            printf("was key/ident");
             token = generate_keyword_or_identifier(current, &current_index);
             tokens[tokens_index] = token;
-        } else {
-            // printf("unidentified current char: %c\n", current[current_index]);
-            tokens_index--;
+        } else if (current[current_index] == '\n') {
+            printf("was newline");
+            line_number += 1;
             current_index++;
+            continue;
+        } else {
+            printf("unidentified current char: %c\n", current[current_index]);
+            current_index++;
+            continue;
         }
-        // if (token != NULL)
-        //     print_token(*token);
-        // printf("current char: %c\n", current[current_index]);
+        if (token != NULL)
+            print_token(*token);
         tokens_index++;
     }
+    // After the loop, ensure there's space for the END_TOKEN
+    if (tokens_size >= number_of_tokens) {
+        number_of_tokens++; // Just need one more slot
+        tokens = realloc(tokens, sizeof(Token*) * number_of_tokens);
+        if (tokens == NULL) {
+            perror("realloc failed for END_TOKEN slot");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     tokens[tokens_index] = malloc(sizeof(Token));
     tokens[tokens_index]->word = malloc(2);
     // strcpy(tokens[tokens_index]->word, "\0");
     tokens[tokens_index]->word[0] = '\0';
     tokens[tokens_index]->type = END_TOKEN;
-
+    print_token(*tokens[tokens_index]);
+    printf("tokens_size: %d\n tokens_index: %zu\n", tokens_size, tokens_index);
+    //
+    // printf("printing tokesn\n");
+    // for (int i = 0; tokens[i]->type != END_TOKEN; i++) {
+    //     print_token(*tokens[i]);
+    // }
+    // printf("print over\n");
     return tokens;
 }
 

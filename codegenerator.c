@@ -35,18 +35,18 @@ void create_end_loop(FILE* file) {
 }
 
 void create_loop_label(FILE* file) {
-    fprintf(file, "loop%d\n", loop_label_number);
+    fprintf(file, "loop%d:\n", loop_label_number);
     loop_label_number++;
 }
 
 void if_label(FILE* file, char* comp, int num) {
-    if (strcmp(comp, "EQ") == 0) {
-        fprintf(file, " jne lable%d\n", num);
-    } else if (strcmp(comp, "NEQ") == 0) {
+    if (strcmp(comp, "eq") == 0) {
+        fprintf(file, " jne label%d\n", num);
+    } else if (strcmp(comp, "neq") == 0) {
         fprintf(file, " je label%d\n", num);
-    } else if (strcmp(comp, "LESS") == 0) {
+    } else if (strcmp(comp, "less") == 0) {
         fprintf(file, " jge label%d\n", num);
-    } else if (strcmp(comp, "GREATER") == 0) {
+    } else if (strcmp(comp, "greater") == 0) {
         fprintf(file, " jle label%d\n", num);
     } else {
         printf("ERROR: unexpected comparator\n");
@@ -151,8 +151,7 @@ OperatorType check_operator(Node* node) {
 
 int mov_if_var_or_not(char* reg, Node* node, FILE* file) {
     if (node->type == IDENTIFIER) {
-        int* value = malloc(sizeof(int));
-        value = hashmap_get(&hashmap, node->value, strlen(node->value));
+        int* value = hashmap_get(&hashmap, node->value, strlen(node->value));
         if (value == NULL) {
             printf("ERROR: Variable %s not declared in current scope\n", node->value);
             exit(1);
@@ -299,6 +298,13 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
     }
 
     if (strcmp(cur->value, "int") == 0) {
+        printf("reading int\n\n");
+
+        if (!cur->left || !cur->left->left || !cur->left->left->left) {
+            printf("ERROR: Malformed AST for int declaration\n");
+            exit(1);
+        }
+
         Node* value = malloc(sizeof(Node));
         value = cur->left->left->left;
         if (value->type == IDENTIFIER) {
@@ -334,6 +340,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         }
         cur->left = NULL;
     } else if (strcmp(cur->value, "IF") == 0) {
+        printf("reading if\n\n");
         scope_stak_push("IF");
         Node* current = malloc(sizeof(Node));
         current = cur->left->left;
@@ -354,8 +361,9 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         pop("rbx", file);
         fprintf(file, " cmp rax, rbx\n");
         if_label(file, current->value, scope_count);
-        cur->left->left == NULL;
+        cur->left->left = NULL;
     } else if (strcmp(cur->value, "while") == 0) {
+        printf("reading while\n\n");
         scope_stak_push("W");
         create_loop_label(file);
         Node* current = malloc(sizeof(Node));
@@ -372,24 +380,29 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         } else {
             op_handler(file, current->right);
         }
+
+        printf("testing...\n\n");
+
         pop("rbx", file);
         pop("rax", file);
         fprintf(file, " cmp rax, rbx\n");
 
-        if (strcmp(current->value, "EQ") == 0) {
+        printf("testing...\n\n");
+
+        if (strcmp(current->value, "eq") == 0) {
             if_label(file, current->value, scope_count);
-        } else if (strcmp(current->value, "NEQ") == 0) {
+        } else if (strcmp(current->value, "neq") == 0) {
             if_label(file, current->value, scope_count);
-        } else if (strcmp(current->value, "LESS") == 0) {
+        } else if (strcmp(current->value, "less") == 0) {
             if_label(file, current->value, scope_count);
-        } else if (strcmp(current->value, "GREATER") == 0) {
+        } else if (strcmp(current->value, "greater") == 0) {
             if_label(file, current->value, scope_count);
         } else {
-            printf("ERROR: unknown operator\n");
+            printf("ERROR: unknown operator: %s\n", current->value);
             exit(1);
         }
         cur->left->left = NULL;
-    } else if (strcmp(cur->value, "WRITE") == 0) {
+    } else if (strcmp(cur->value, "write") == 0) {
         char* text = malloc(sizeof(char) * 8);
         char* identifier = malloc(sizeof(char) * 8);
         if (cur->left->type == IDENTIFIER) {
@@ -424,6 +437,8 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         cur->right = NULL;
         cur = tmp;
     }
+
+    printf("testing...1\n\n");
 
     if (strcmp(cur->value, "(") == 0) {
     }
@@ -503,6 +518,11 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         char* current_scope = scope_stak_pop();
         char* next_scope = scope_stak_pop();
 
+        if (!current_scope || !next_scope) {
+            printf("ERROR: Scope stack underflow\n");
+            exit(1);
+        }
+
         if (next_scope[0] == 'I') {
             create_label(file, atoi(current_scope) - 1);
             global_scope = atoi(current_scope);
@@ -513,7 +533,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         }
 
         size_t stack_value = stack_pop();
-        while (stack_size == stack_value) {
+        for (; stack_size != stack_value;) {
             pop("rsi", file);
         }
 
@@ -579,7 +599,7 @@ void generate_code(Node* root) {
 
     fprintf(assembly_file, ".global _start\n\n");
     fprintf(assembly_file, "_start:\n");
-    // print_tree(root, 0, "root");
+    printf("entering traverse tree\n\n");
 
     traverse_tree(root, 0, assembly_file, 0);
     fclose(assembly_file);
