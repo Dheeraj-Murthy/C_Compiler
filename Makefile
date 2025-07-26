@@ -12,8 +12,11 @@ comp: $(SRC)
 	@mkdir -p build
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
 
+run-gdb: debug
+	@lldb  $(TARGET) run $(FILE)
+
 # Compile with debug symbols (-g)
-debug: CFLAGS += -g
+debug: CFLAGS += -g -Iutils/ -O3
 debug: clean comp
 	@echo "Built with debug symbols. Run with: gdb $(TARGET)"
 

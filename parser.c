@@ -218,54 +218,35 @@ Node* parse_expression(Token** tokens, int* token_number) {
     return node;
 }
 
-// This function replaces the large code block you provided for assignments.
-// It assumes `current` from your original snippet is `parent_node` here,
-// indicating where the new statement should be linked in the overall AST.
 Node* parse_assignment_statement(Token** tokens, int* token_number, Node* parent_node) {
-    // 1. Parse the Identifier (LHS of assignment)
-    // Link this identifier to the `parent_node` (e.g., as its 'left' child, if parsing
-    // declarations) Or, if this function is only for `IDENTIFIER = EXPRESSION;` without `int`, the
-    // parent_node might be the root of the block. For simplicity, let's assume `parent_node` is
-    // where the overall assignment statement (rooted by ';') will be attached.
-
     // Get the identifier node (e.g., 'x')
     expect(tokens, *token_number, IDENTIFIER, tokens[*token_number]->word);
     Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
     (*token_number)++; // Consume the identifier token
 
-    // 2. Parse the Assignment Operator '='
+    // Parse the Assignment Operator '='
     expect(tokens, *token_number, OPERATOR, "=");
     Node* equals_node = create_Node(tokens[*token_number]->word, OPERATOR);
-    equals_node->left = identifier_node; // The identifier 'x' is the left child of '='
+    identifier_node->left = equals_node; // The equals node is the left child of the identifier
     (*token_number)++;                   // Consume the '=' token
 
-    // 3. Parse the Expression (RHS of assignment)
+    // Parse the Expression (RHS of assignment)
     Node* expression_node =
         parse_expression(tokens, token_number); // Call the dedicated expression parser
-    if (expression_node == NULL) {              // Handle error from expression parsing
-        // You might need to free identifier_node and equals_node here
+    if (expression_node == NULL) {
         exit(EXIT_FAILURE);
     }
-    equals_node->right = expression_node; // The parsed expression is the right child of '='
+    equals_node->left = expression_node; // The parsed expression is the left child of '='
 
-    // 4. Expect the Semicolon ';'
+    // Expect the Semicolon ';'
     expect(tokens, *token_number, SEPARATOR, ";");
     Node* semicolon_node = create_Node(tokens[*token_number]->word, SEPARATOR);
-    semicolon_node->left =
-        equals_node;   // The entire assignment (rooted by '=') is the left child of ';'
-                       // This creates a sequence of statements if you link them by 'right' later.
-    (*token_number)++; // Consume the ';' token
+    identifier_node->right = semicolon_node; // The semicolon is the right child of the identifier
+    (*token_number)++;                       // Consume the ';' token
 
-    // Link this complete statement (rooted by semicolon_node) to the parent in the AST.
-    // This depends on how your main `parser` function structures the program.
-    // For example, if `parser` builds a linked list of statements:
-    // parent_node->right = semicolon_node; // Or similar
-    // For now, we'll just return the root of this statement.
-    // The caller (e.g., your main `parser` function) will be responsible for linking
-    // `semicolon_node` into the larger AST (e.g., `current_node->right = semicolon_node;
-    // current_node = semicolon_node;`)
-
-    return semicolon_node; // Return the root of this assignment statement's AST
+    // The caller will link this statement into the larger AST.
+    // We return the root of this new subtree, which is the identifier.
+    return identifier_node;
 }
 
 // Node* create_var_reuseable(Token** tokens, int* token_number, Node* current) {
