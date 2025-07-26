@@ -19,7 +19,6 @@ void print_token(Token token) {
         "COMP",       // 7
         "END_TOKEN"   // 8
     };
-    printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token.type], token.word);
 }
 
 Token* generate_number(char* current, int* current_index) {
@@ -121,7 +120,6 @@ Token** lexer(FILE* file) {
     fread(current, 1, length, file);
 
     fclose(file);
-    // printf("Entire File: %s", current);
 
     current[length] = '\0';
     int current_index = 0;
@@ -132,7 +130,6 @@ Token** lexer(FILE* file) {
     tokens_index = 0;
 
     while (current[current_index] != '\0') {
-        printf("current char: %c\n", current[current_index]);
         Token* token = NULL;
         tokens_size++;
         if (tokens_size > number_of_tokens) {
@@ -142,38 +139,30 @@ Token** lexer(FILE* file) {
         if (current[current_index] == '(' || current[current_index] == ')' ||
             current[current_index] == ';' || current[current_index] == ',' ||
             current[current_index] == '{' || current[current_index] == '}') {
-            printf("was sep");
             token = generate_separator_or_operator(current, &current_index, SEPARATOR);
             tokens[tokens_index] = token;
         } else if (current[current_index] == '+' || current[current_index] == '-' ||
                    current[current_index] == '*' || current[current_index] == '/' ||
                    current[current_index] == '=' || current[current_index] == '%') {
-            printf("was op");
             token = generate_separator_or_operator(current, &current_index, OPERATOR);
             tokens[tokens_index] = token;
         } else if (current[current_index] == '"') {
-            printf("was str");
             token = generate_string_token(current, &current_index);
             tokens[tokens_index] = token;
         } else if (current[current_index] == ' ') {
-            printf("was space");
             current_index++;
             continue;
         } else if (isdigit(current[current_index])) {
-            printf("was dig");
             token = generate_number(current, &current_index);
             tokens[tokens_index] = token;
         } else if (isalpha(current[current_index])) {
-            printf("was key/ident");
             token = generate_keyword_or_identifier(current, &current_index);
             tokens[tokens_index] = token;
         } else if (current[current_index] == '\n') {
-            printf("was newline");
             line_number += 1;
             current_index++;
             continue;
         } else {
-            printf("unidentified current char: %c\n", current[current_index]);
             current_index++;
             continue;
         }
@@ -197,13 +186,13 @@ Token** lexer(FILE* file) {
     tokens[tokens_index]->word[0] = '\0';
     tokens[tokens_index]->type = END_TOKEN;
     print_token(*tokens[tokens_index]);
-    printf("tokens_size: %d\n tokens_index: %zu\n", tokens_size, tokens_index);
+
     //
-    // printf("printing tokesn\n");
+
     // for (int i = 0; tokens[i]->type != END_TOKEN; i++) {
     //     print_token(*tokens[i]);
     // }
-    // printf("print over\n");
+
     return tokens;
 }
 

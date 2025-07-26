@@ -44,7 +44,7 @@ Lloop0:
     str x0, [sp, #-16]!
     b Lloop0
 Llabel0:
-    mov x0, #0
+    mov x0, #12
     str x0, [sp, #-16]!
     mov x16, #1
     ldr x0, [sp], #16

@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+build/
+assembly/build/
+*.o
+*.dSYM/
+
+# Generated files
+output
+generated.s

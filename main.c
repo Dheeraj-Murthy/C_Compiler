@@ -20,19 +20,18 @@ int main(int argc, char* argv[]) {
 
     Token** tokens = lexer(file);
     fclose(file);
-    printf("printing tokesn\n");
+
     for (int i = 0; tokens[i]->type != END_TOKEN; i++) {
         print_token(*tokens[i]);
     }
-    printf("print over\n");
-    Node* root = parser(tokens);
-    printf("parser complete\n\n");
-    generate_code(root);
-    printf("generated code\n\n");
 
-    for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
-        print_token(*tokens[i]);
-    }
+    Node* root = parser(tokens);
+
+    generate_code(root);
+
+    // for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
+    //     print_token(*tokens[i]);
+    // }
 
     free_tokens(tokens);
 }

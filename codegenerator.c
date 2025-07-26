@@ -267,7 +267,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
     }
 
     if (strcmp(cur->value, "int") == 0) {
-        printf("reading int\n\n");
+        // printf("reading int\n\n");
 
         if (!cur->left || !cur->left->left || !cur->left->left->left) {
             printf("ERROR: Malformed AST for int declaration\n");
@@ -309,7 +309,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         }
         cur->left = NULL;
     } else if (strcmp(cur->value, "IF") == 0) {
-        printf("reading if\n\n");
+        // printf("reading if\n\n");
         scope_stak_push("IF");
         Node* current = malloc(sizeof(Node));
         current = cur->left->left;
@@ -332,7 +332,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         if_label(file, current->value, scope_count);
         cur->left->left = NULL;
     } else if (strcmp(cur->value, "while") == 0) {
-        printf("reading while\n\n");
+        // printf("reading while\n\n");
         scope_stak_push("W");
         create_loop_label(file);
         Node* current = malloc(sizeof(Node));
@@ -350,13 +350,13 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
             op_handler(file, current->right);
         }
 
-        printf("testing...\n\n");
+        // printf("testing...\n\n");
 
         pop("x1", file);
         pop("x0", file);
         fprintf(file, "    cmp x0, x1\n");
 
-        printf("testing...\n\n");
+        // printf("testing...\n\n");
 
         if (strcmp(current->value, "eq") == 0) {
             if_label(file, current->value, scope_count);
@@ -410,7 +410,7 @@ void traverse_tree(Node* cur, int is_left, FILE* file, int syscall_number) {
         cur = tmp;
     }
 
-    printf("testing...1\n\n");
+    // printf("testing...1\n\n");
 
     if (strcmp(cur->value, "(") == 0) {
     }
@@ -587,8 +587,6 @@ void generate_code(Node* root) {
     fprintf(assembly_file, "    stp x29, x30, [sp, #-16]!\n");
     fprintf(assembly_file, "    mov x29, sp\n");
 
-    printf("entering traverse tree\n\n");
-
     traverse_tree(root, 0, assembly_file, 0);
 
     // Clean up and return
@@ -598,6 +596,6 @@ void generate_code(Node* root) {
 
     fclose(assembly_file);
 
-    printf("Running assembly");
-    // system("assembly/build.sh");
+    
+    system("assembly/build.sh");
 }

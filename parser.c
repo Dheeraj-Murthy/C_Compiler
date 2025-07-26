@@ -18,8 +18,7 @@ void print_tree(Node* current, int depth) {
         "COMP",       // 7
         "END_TOKEN"   // 8
     };
-    for (int i = 0; i < depth; i++)
-        printf("  ");
+
     printf("Value: %s || Type: %s\n", current->value, TokenTypeNames[current->type]);
     if (current->left) {
         for (int i = 0; i < depth + 1; i++)
@@ -693,7 +692,7 @@ Node* parser(Token** tokens) {
     scope_stack* stack = malloc(sizeof(scope_stack));
 
     int i = 0;
-    printf("\n\nParsing the tokens:\n\n");
+    // printf("\n\nParsing the tokens:\n\n");
     while (tokens[i] && tokens[i]->type != END_TOKEN) {
         if (current_node == NULL)
             break;
@@ -703,7 +702,7 @@ Node* parser(Token** tokens) {
             case INT:
                 break;
             case KEYWORD:
-                printf("parsing keyword\n");
+                // printf("parsing keyword\n");
                 if (!strcmp(tokens[i]->word, "exit")) {
                     current_node = parse_exit(tokens, &i, root);
                 } else if (!strcmp(tokens[i]->word, "int")) {
@@ -760,7 +759,7 @@ Node* parser(Token** tokens) {
         i++;
         print_token(*tokens[i]);
     }
-    printf("parsing over\n\n");
+    // printf("parsing over\n\n");
     print_tree(root, 0);
     return root;
 }
