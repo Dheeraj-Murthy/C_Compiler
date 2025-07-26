@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
     Node* root = parser(tokens);
     printf("parser complete\n\n");
     generate_code(root);
+    printf("generated code\n\n");
 
     for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
         print_token(*tokens[i]);
