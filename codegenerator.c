@@ -596,6 +596,5 @@ void generate_code(Node* root) {
 
     fclose(assembly_file);
 
-    
     system("assembly/build.sh");
 }

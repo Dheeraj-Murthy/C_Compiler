@@ -1,49 +1,70 @@
-# Bling Compiler
+# Bling Compiler Project
 
-This is a simple compiler for the Bling programming language. It takes a `.bling` file as input and is intended to generate assembly code.
+## Overview
+
+This repository hosts the source code for the Bling Compiler, a project designed to translate source code written in the Bling programming language into assembly code. The compiler is structured into several distinct phases: lexical analysis, parsing, and code generation.
 
 ## Features
 
-- **Lexer:** The lexer tokenizes the input `.bling` file. It can identify keywords, identifiers, operators, separators, and integers.
-- **Parser:** The parser takes the tokens from the lexer and builds an Abstract Syntax Tree (AST).
-- **Code Generator (Partial):** The code generator is intended to take the AST and generate assembly code. This feature is not yet fully implemented.
+- **Lexical Analyzer (Lexer):** Responsible for tokenizing the input `.bling` source file. It accurately identifies and categorizes language elements such as keywords, identifiers, operators, separators, and integer literals.
+- **Parser:** Consumes the token stream produced by the lexer to construct an Abstract Syntax Tree (AST). The AST serves as an intermediate representation of the source code's syntactic structure.
+- **Code Generator (Under Development):** This component is designed to traverse the generated AST and produce corresponding assembly language instructions. This feature is currently undergoing active development and is not yet fully implemented.
 
-## How to Run
+## Getting Started
 
-To compile and run the compiler, you can use the provided `Makefile`.
+To build and execute the Bling Compiler, follow the instructions below. A `Makefile` is provided to streamline the process.
 
-1.  **Compile the compiler:**
-    ```bash
-    make comp
-    ```
-2.  **Run the compiler with a `.bling` file:**
+### Prerequisites
 
-    ```bash
-    make run FILE=<your_file.bling>
-    ```
+- A C compiler (e.g., GCC, Clang)
+- `make` utility
+- Hardware running on Apple Silicon Framework
 
-    If you don't provide a `FILE` argument, it will default to `test.bling`.
+### Building the Compiler
 
-3.  **Clean the build artifacts:**
-    ```bash
-    make clean
-    ```
+Navigate to the root directory of the project and execute the following command:
 
-## File Descriptions
+```bash
+make comp
+```
 
-- `main.c`: The main entry point for the compiler. It handles file I/O and calls the lexer and parser.
-- `lexer.h`, `lexer.c`: The lexical analyzer, which converts the source code into a stream of tokens.
-- `parser.h`, `parser.c`: The parser, which builds the Abstract Syntax Tree (AST) from the tokens.
-- `codegenerator.h`, `codegenerator.c`: The code generator, which is intended to generate assembly code from the AST.
-- `utils/`: This directory contains utility functions, such as the hashmap implementation.
-- `assembly/`: This directory contains files related to assembly code generation.
-- `Makefile`: The build script for the project.
-- `test.bling`: An example `.bling` file for testing.
+### Running the Compiler
 
-## Future Scope
+To compile a Bling source file, use the `run` target, specifying the input file via the `FILE` variable:
 
-- Complete the implementation of the code generator to produce functional assembly code.
-- Add support for more data types, such as strings and floats.
-- Implement more complex language features, such as functions and control flow statements.
-- Add error handling and recovery to the parser.
-- Write more comprehensive tests for all components of the compiler.
+```bash
+make run FILE=<your_file.bling>
+```
+
+If the `FILE` variable is not provided, the compiler will default to processing `test.bling`.
+
+### Cleaning Build Artifacts
+
+To remove all generated build files and executables, use the `clean` target:
+
+```bash
+make clean
+```
+
+## Project Structure
+
+- `main.c`: The primary entry point of the compiler, orchestrating file I/O and the invocation of the lexical and parsing phases.
+- `lexer.h`, `lexer.c`: Implementation of the lexical analyzer.
+- `parser.h`, `parser.c`: Implementation of the parser and AST construction.
+- `codegenerator.h`, `codegenerator.c`: Contains the ongoing implementation of the code generator.
+- `utils/`: A directory housing various utility functions, including a custom hash map implementation.
+- `assembly/`: Contains resources and scripts related to assembly code generation and testing.
+- `Makefile`: The project's build automation script.
+- `test.bling`: An example Bling source file for testing and demonstration purposes.
+
+## Future Enhancements
+
+- Full implementation and optimization of the code generator to produce robust and functional assembly code.
+- Expansion of language features to include support for additional data types (e.g., strings, floating-point numbers).
+- Integration of advanced programming constructs, such as functions, control flow statements (e.g., `if`, `while`), and data structures.
+- Development of comprehensive error handling and recovery mechanisms within the parser.
+- Establishment of a thorough test suite to ensure the correctness and reliability of all compiler components.
+
+## License
+
+This project is licensed under the terms specified in the `LICENSE.md` file.

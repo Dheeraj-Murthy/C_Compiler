@@ -124,9 +124,9 @@ Node* parse_exit(Token** tokens, int* i, Node* current) {
     (*i)++;
 
     // Expect literal
-    if (tokens[*i]->type != INT)
-        print_error("Expected integer literal inside exit()", tokens[*i]->line_num);
-    Node* expr_node = create_Node(tokens[*i]->word, INT);
+    if (tokens[*i]->type != INT && tokens[*i]->type != IDENTIFIER)
+        print_error("Expected integer literal or variable inside exit()", tokens[*i]->line_num);
+    Node* expr_node = create_Node(tokens[*i]->word, tokens[*i]->type);
     open_paren->left = expr_node;
     (*i)++;
 
