@@ -62,15 +62,6 @@ Node* create_Node(char* val, TokenType type) {
     return node;
 }
 
-// Node* parse_expression(Token** tokens, int* token_number, Node* current_node) {
-//     Node* expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
-//     (*token_number)++;
-//     if (tokens[*token_number]->type != OPERATOR) {
-//         return expr_node;
-//     }
-//     return expr_node;
-// }
-
 void oper_tree(Token** tokens, int* i, Node* par) {
     expect(tokens, *i, OPERATOR, tokens[*i]->word);
     Node* opr_node = create_Node(tokens[*i]->word, OPERATOR);
@@ -218,151 +209,33 @@ Node* parse_expression(Token** tokens, int* token_number) {
 }
 
 Node* parse_assignment_statement(Token** tokens, int* token_number, Node* parent_node) {
-    // Get the identifier node (e.g., 'x')
+    // Get the identifier node
     expect(tokens, *token_number, IDENTIFIER, tokens[*token_number]->word);
     Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-    (*token_number)++; // Consume the identifier token
+    parent_node->left = identifier_node;
+    (*token_number)++;
 
     // Parse the Assignment Operator '='
     expect(tokens, *token_number, OPERATOR, "=");
     Node* equals_node = create_Node(tokens[*token_number]->word, OPERATOR);
-    identifier_node->left = equals_node; // The equals node is the left child of the identifier
-    (*token_number)++;                   // Consume the '=' token
+    identifier_node->left = equals_node;
+    (*token_number)++;
 
     // Parse the Expression (RHS of assignment)
-    Node* expression_node =
-        parse_expression(tokens, token_number); // Call the dedicated expression parser
+    Node* expression_node = parse_expression(tokens, token_number);
     if (expression_node == NULL) {
         exit(EXIT_FAILURE);
     }
-    equals_node->left = expression_node; // The parsed expression is the left child of '='
+    equals_node->left = expression_node;
 
     // Expect the Semicolon ';'
     expect(tokens, *token_number, SEPARATOR, ";");
-    Node* semicolon_node = create_Node(tokens[*token_number]->word, SEPARATOR);
-    identifier_node->right = semicolon_node; // The semicolon is the right child of the identifier
-    (*token_number)++;                       // Consume the ';' token
+    Node* sep_node = create_Node(tokens[*token_number]->word, SEPARATOR);
+    identifier_node->right = sep_node;
+    // (*token_number)++;
 
-    // The caller will link this statement into the larger AST.
-    // We return the root of this new subtree, which is the identifier.
-    return identifier_node;
+    return sep_node;
 }
-
-// Node* create_var_reuseable(Token** tokens, int* token_number, Node* current) {
-//     Node* identifier_main = create_Node(tokens[*token_number]->word,
-//     tokens[*token_number]->type); current->left = identifier_main; current = current->left;
-//     (*token_number)++;
-//
-//     expect(tokens, *token_number, OPERATOR, "=");
-//     Node* equals_node = create_Node(tokens[*token_number]->word, OPERATOR);
-//     current->left = equals_node;
-//     current = current->left;
-//     (*token_number)++;
-//
-//     // expect(tokens, *token_number, INT, tokens[*token_number]->word);
-//     // ??
-//     if (tokens[*token_number]->type == END_TOKEN ||
-//         (tokens[*token_number]->type != INT && tokens[*token_number]->type != IDENTIFIER)) {
-//         print_error("Invalid syntax after Equals", tokens[*token_number]->line_num);
-//     }
-//
-//     (*token_number)++;
-//
-//     if (tokens[*token_number]->type == OPERATOR) {
-//         Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
-//         current->left = oper_node;
-//         current = current->left;
-//         (*token_number)--;
-//
-//         if (tokens[*token_number]->type == INT) {
-//             Node* expr_node = create_Node(tokens[*token_number]->word, INT);
-//             current->left = expr_node;
-//             (*token_number) += 2;
-//         } else if (tokens[*token_number]->type == IDENTIFIER) {
-//             Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-//             current->left = identifier_node;
-//             (*token_number) += 2;
-//         } else {
-//             print_error("ERROR: Expected IDENTIFIER or INT", tokens[*token_number]->line_num);
-//         }
-//         (*token_number)++;
-//
-//         if (tokens[*token_number]->type == OPERATOR) {
-//             Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
-//             current->right = oper_node;
-//             current = current->right;
-//             int operation = 1;
-//             (*token_number) -= 2;
-//             while (operation) {
-//                 (*token_number)++;
-//                 if (tokens[*token_number]->type == INT) {
-//                     Node* expr_node = create_Node(tokens[*token_number]->word, INT);
-//                     current->left = expr_node;
-//                 } else if (tokens[*token_number]->type == IDENTIFIER) {
-//                     Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-//                     current->left = identifier_node;
-//                 } else {
-//                     print_error("Unexpected Token\n", tokens[*token_number]->line_num);
-//                 }
-//                 (*token_number)++;
-//
-//                 if (tokens[*token_number]->type == OPERATOR) {
-//                     (*token_number) += 2;
-//                     if (tokens[*token_number]->type != OPERATOR) {
-//                         (*token_number)--;
-//                         if (tokens[*token_number]->type == INT) {
-//                             Node* expr_node = create_Node(tokens[*token_number]->word, INT);
-//                             current->right = expr_node;
-//                             (*token_number)++;
-//                         } else if (tokens[*token_number]->type == IDENTIFIER) {
-//                             Node* identifier_node =
-//                                 create_Node(tokens[*token_number]->word, IDENTIFIER);
-//                             current->right = identifier_node;
-//                             (*token_number)++;
-//                         } else {
-//                             print_error("UNRECOGNISED TOKEN!", tokens[*token_number]->line_num);
-//                         }
-//                         operation = 0;
-//                     } else {
-//                         (*token_number) -= 2;
-//                         Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
-//                         current->right = oper_node;
-//                         current = current->right;
-//                     }
-//                 } else {
-//                     operation = 0;
-//                 }
-//             }
-//         } else {
-//             (*token_number)--;
-//             if (tokens[*token_number]->type == INT) {
-//                 Node* expr_node = create_Node(tokens[*token_number]->word, INT);
-//                 current->right = expr_node;
-//             } else if (tokens[*token_number]->type == IDENTIFIER) {
-//                 Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-//                 current->right = identifier_node;
-//             }
-//             (*token_number)++;
-//         }
-//     } else {
-//         (*token_number)--;
-//         if (tokens[*token_number]->type == INT) {
-//             Node* expr_node = create_Node(tokens[*token_number]->word, INT);
-//             current->left = expr_node;
-//         } else if (tokens[*token_number]->type == IDENTIFIER) {
-//             Node* identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-//             current->left = identifier_node;
-//         }
-//         (*token_number)++;
-//     }
-//     expect(tokens, *token_number, SEPARATOR, ";");
-//
-//     current = identifier_main;
-//     Node* semi_node = create_Node(tokens[*token_number]->word, SEPARATOR);
-//     current->right = semi_node;
-//     current = current->right;
-//     return current;
-// }
 
 Node* create_variable(Token** tokens, int* token_number, Node* current) {
     Node* var_node = create_Node(tokens[*token_number]->word, KEYWORD);
@@ -491,9 +364,9 @@ Node* create_variable(Token** tokens, int* token_number, Node* current) {
 // Fixed version of generate_if_operation_nodes
 int generate_if_operation_nodes(Token** tokens, int* token_number, Node* current_node) {
     // At this point, *token_number should be pointing to the operator
-    Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
-    current_node->left->left = oper_node;
-    current_node = oper_node;
+    // Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
+    // current_node->left = oper_node;
+    current_node = current_node->left;
 
     // Move back to get the left operand (the variable before the operator)
     (*token_number)--;
@@ -609,57 +482,42 @@ Node* create_if_statement(Token** tokens, int* token_number, Node* current_node)
     current_node = if_node;
     (*token_number)++;
 
+    // Parse opening parenthesis "("
     expect(tokens, *token_number, SEPARATOR, "(");
     Node* open_paren_node = create_Node(tokens[*token_number]->word, SEPARATOR);
-    current_node->left = open_paren_node;
-    current_node = open_paren_node;
-
+    if_node->left = open_paren_node;
     (*token_number)++;
+
+    // Parse left operand (variable or number)
     if (tokens[*token_number]->type != IDENTIFIER && tokens[*token_number]->type != INT) {
-        print_error("Expected Identifier or INT", tokens[*token_number]->line_num);
+        print_error("Expected Identifier or INT in condition", tokens[*token_number]->line_num);
     }
+    Node* left_operand = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    (*token_number)++;
 
-    while (tokens[*token_number]->type != END_TOKEN && tokens[*token_number]->type != COMP) {
-        (*token_number)++;
+    // Parse comparison operator
+    if (tokens[*token_number]->type != COMP) {
+        print_error("Expected comparison operator", tokens[*token_number]->line_num);
     }
-
-    expect(tokens, *token_number, COMP, tokens[*token_number]->word);
     Node* comp_node = create_Node(tokens[*token_number]->word, COMP);
+    comp_node->left = left_operand;
     open_paren_node->left = comp_node;
-
-    while (current_node->type != SEPARATOR) {
-        (*token_number)--;
-    }
-
-    (*token_number) += 2;
-    if (tokens[*token_number]->type != OPERATOR) {
-        (*token_number)--;
-        Node* expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
-        comp_node->left = expr_node;
-    } else {
-        *token_number = generate_if_operation_nodes(tokens, token_number, current_node);
-    }
-
     (*token_number)++;
-    while ((tokens[*token_number]->type != END_TOKEN && tokens[*token_number]->type != OPERATOR &&
-            tokens[*token_number]->type != SEPARATOR) ||
-           strcmp(tokens[*token_number]->word, "=") == 0) {
-        (*token_number)++;
-    }
-    if (tokens[*token_number]->type == SEPARATOR) {
-        (*token_number)--;
-        Node* expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
-        comp_node->right = expr_node;
-    } else {
-        *token_number = generate_if_operation_nodes_right(tokens, token_number, current_node);
-    }
 
+    // Parse right operand (variable or number)
+    if (tokens[*token_number]->type != IDENTIFIER && tokens[*token_number]->type != INT) {
+        print_error("Expected Identifier or INT in condition", tokens[*token_number]->line_num);
+    }
+    Node* right_operand = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    comp_node->right = right_operand;
     (*token_number)++;
+
+    // Parse closing parenthesis ")"
     expect(tokens, *token_number, SEPARATOR, ")");
-    Node* close_paren_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    Node* close_paren_node = create_Node(tokens[*token_number]->word, SEPARATOR);
     open_paren_node->right = close_paren_node;
-    current_node = close_paren_node;
-    return current_node;
+
+    return close_paren_node;
 }
 
 Node* handle_write_node(Token** tokens, int* token_number, Node* current_node) {
@@ -736,7 +594,7 @@ Node* parser(Token** tokens) {
                     current_node->left = open_scope;
                     current_node = open_scope;
                     push_scope(stack, open_scope);
-                    current_node = peek_scope(stack);
+                    // current_node = peek_scope(stack);
                 }
                 if (strcmp(tokens[i]->word, "}") == 0) {
                     Node* close_scope = create_Node(tokens[i]->word, tokens[i]->type);
@@ -745,7 +603,7 @@ Node* parser(Token** tokens) {
                         print_error("Closed brace does not have opening brace",
                                     tokens[i]->line_num);
                     }
-                    current_node->right = close_scope;
+                    open_scope->right = close_scope;
                     current_node = close_scope;
                 }
                 break;
@@ -761,8 +619,8 @@ Node* parser(Token** tokens) {
                                                          (strcmp(tokens[i - 1]->word, "{") == 0))) {
                     Node* assignment_statement =
                         parse_assignment_statement(tokens, &i, current_node);
-                    current_node->right = assignment_statement; // Link the statement
-                    current_node = assignment_statement;        // Advance for next statement
+                    // current_node->right = assignment_statement; // Link the statement
+                    current_node = assignment_statement; // Advance for next statement
                 } else {
                 }
                 break;
