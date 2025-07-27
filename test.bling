@@ -1,5 +1,5 @@
 int x = 0;
-int y = 0;
+int y = 1;
 int z = 0;
 int i = 1;
 
@@ -10,4 +10,4 @@ while(i neq 100){
   i = i + 1;
 }
 
-exit(x);
+exit(i);
