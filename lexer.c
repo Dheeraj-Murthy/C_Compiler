@@ -19,6 +19,7 @@ void print_token(Token token) {
         "COMP",       // 7
         "END_TOKEN"   // 8
     };
+    printf(" Token type: %s || Token word: %s\n", TokenTypeNames[token.type], token.word);
 }
 
 Token* generate_number(char* current, int* current_index) {
@@ -166,8 +167,8 @@ Token** lexer(FILE* file) {
             current_index++;
             continue;
         }
-        if (token != NULL)
-            print_token(*token);
+        // if (token != NULL)
+        //     print_token(*token);
         tokens_index++;
     }
     // After the loop, ensure there's space for the END_TOKEN
@@ -185,7 +186,7 @@ Token** lexer(FILE* file) {
     // strcpy(tokens[tokens_index]->word, "\0");
     tokens[tokens_index]->word[0] = '\0';
     tokens[tokens_index]->type = END_TOKEN;
-    print_token(*tokens[tokens_index]);
+    // print_token(*tokens[tokens_index]);
 
     //
 

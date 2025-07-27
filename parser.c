@@ -488,54 +488,69 @@ Node* create_variable(Token** tokens, int* token_number, Node* current) {
     return semi_node;
 }
 
+// Fixed version of generate_if_operation_nodes
 int generate_if_operation_nodes(Token** tokens, int* token_number, Node* current_node) {
+    // At this point, *token_number should be pointing to the operator
     Node* oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
     current_node->left->left = oper_node;
     current_node = oper_node;
+
+    // Move back to get the left operand (the variable before the operator)
     (*token_number)--;
+    Node* left_expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    current_node->left = left_expr_node;
 
-    Node* expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
-    current_node->left = expr_node;
+    // Move forward past the operator to get the right operand
     (*token_number) += 2;
+    Node* right_expr_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    current_node->right = right_expr_node;
 
-    while (tokens[*token_number]->type == INT || tokens[*token_number]->type == IDENTIFIER ||
-           tokens[*token_number]->type == OPERATOR) {
-        // if ((tokens[*token_number]->type != INT && tokens[*token_number]->type != IDENTIFIER) &&
-        //     tokens[*token_number] == NULL) {
-        //     print_error("Invalid token", tokens[*token_number]->line_num);
-        // }
-        if (tokens[*token_number + 1]->type != OPERATOR ||
-            strcmp(tokens[*token_number + 1]->word, "=") == 0) {
-            if (tokens[*token_number]->type == INT) {
-                Node* second_expr_node = create_Node(tokens[*token_number]->word, INT);
-                current_node->right = second_expr_node;
-            } else if (tokens[*token_number]->type == IDENTIFIER) {
-                Node* second_identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-                current_node->right = second_identifier_node;
-            } else {
-                print_error("Expected Integer or identifier ", tokens[*token_number]->line_num);
-            }
-        }
-        if (strcmp(tokens[*token_number]->word, "=") == 0) {
-            break;
-        } else if (tokens[*token_number]->type == OPERATOR) {
-            Node* next_oper_node = create_Node(tokens[*token_number]->word, OPERATOR);
-            current_node->right = next_oper_node;
-            (*token_number)--;
-            if (tokens[*token_number]->type == INT) {
-                Node* second_expr_node = create_Node(tokens[*token_number]->word, INT);
-                current_node->left = second_expr_node;
-            } else if (tokens[*token_number]->type == IDENTIFIER) {
-                Node* second_identifier_node = create_Node(tokens[*token_number]->word, IDENTIFIER);
-                current_node->left = second_identifier_node;
-            } else {
-                print_error("Expected INT or IDENTIFIER", tokens[*token_number]->line_num);
-            }
-            (*token_number)++;
-        }
-        (*token_number)++;
-    }
     return *token_number;
+}
+
+// Alternative: Completely rewrite the if statement parsing for clarity
+Node* create_if_statement_fixed(Token** tokens, int* token_number, Node* current_node) {
+    // Parse "if" keyword
+    Node* if_node = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    current_node->left = if_node;
+    (*token_number)++;
+
+    // Parse opening parenthesis "("
+    expect(tokens, *token_number, SEPARATOR, "(");
+    Node* open_paren_node = create_Node(tokens[*token_number]->word, SEPARATOR);
+    if_node->left = open_paren_node;
+    (*token_number)++;
+
+    // Parse left operand (variable or number)
+    if (tokens[*token_number]->type != IDENTIFIER && tokens[*token_number]->type != INT) {
+        print_error("Expected Identifier or INT in condition", tokens[*token_number]->line_num);
+    }
+    Node* left_operand = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    (*token_number)++;
+
+    // Parse comparison operator
+    if (tokens[*token_number]->type != COMP) {
+        print_error("Expected comparison operator", tokens[*token_number]->line_num);
+    }
+    Node* comp_node = create_Node(tokens[*token_number]->word, COMP);
+    comp_node->left = left_operand;
+    open_paren_node->left = comp_node;
+    (*token_number)++;
+
+    // Parse right operand (variable or number)
+    if (tokens[*token_number]->type != IDENTIFIER && tokens[*token_number]->type != INT) {
+        print_error("Expected Identifier or INT in condition", tokens[*token_number]->line_num);
+    }
+    Node* right_operand = create_Node(tokens[*token_number]->word, tokens[*token_number]->type);
+    comp_node->right = right_operand;
+    (*token_number)++;
+
+    // Parse closing parenthesis ")"
+    expect(tokens, *token_number, SEPARATOR, ")");
+    Node* close_paren_node = create_Node(tokens[*token_number]->word, SEPARATOR);
+    open_paren_node->right = close_paren_node;
+
+    return close_paren_node;
 }
 
 int generate_if_operation_nodes_right(Token** tokens, int* token_number, Node* current_node) {
@@ -696,7 +711,7 @@ Node* parser(Token** tokens) {
     while (tokens[i] && tokens[i]->type != END_TOKEN) {
         if (current_node == NULL)
             break;
-        print_token(*tokens[i]);
+        // print_token(*tokens[i]);
 
         switch (tokens[i]->type) {
             case INT:
@@ -757,7 +772,7 @@ Node* parser(Token** tokens) {
                 break;
         }
         i++;
-        print_token(*tokens[i]);
+        // print_token(*tokens[i]);
     }
     // printf("parsing over\n\n");
     print_tree(root, 0);

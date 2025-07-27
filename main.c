@@ -21,17 +21,14 @@ int main(int argc, char* argv[]) {
     Token** tokens = lexer(file);
     fclose(file);
 
-    for (int i = 0; tokens[i]->type != END_TOKEN; i++) {
+    // printf("print tokens");
+    for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
         print_token(*tokens[i]);
     }
 
     Node* root = parser(tokens);
 
     generate_code(root);
-
-    // for (size_t i = 0; tokens[i]->type != END_TOKEN; i++) {
-    //     print_token(*tokens[i]);
-    // }
 
     free_tokens(tokens);
 }
