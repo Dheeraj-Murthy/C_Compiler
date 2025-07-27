@@ -8,7 +8,7 @@ This repository hosts the source code for the Bling Compiler, a project designed
 
 - **Lexical Analyzer (Lexer):** Responsible for tokenizing the input `.bling` source file. It accurately identifies and categorizes language elements such as keywords, identifiers, operators, separators, and integer literals.
 - **Parser:** Consumes the token stream produced by the lexer to construct an Abstract Syntax Tree (AST). The AST serves as an intermediate representation of the source code's syntactic structure.
-- **Code Generator (Under Development):** This component is designed to traverse the generated AST and produce corresponding assembly language instructions. This feature is currently undergoing active development and is not yet fully implemented.
+- **Code Generator (Under Development):** This component is designed to traverse the generated AST and produce corresponding assembly language instructions, specifically targeting the Apple Silicon (ARM64) architecture. This feature is currently undergoing active development and is not yet fully implemented.
 
 ## Getting Started
 
@@ -16,9 +16,8 @@ To build and execute the Bling Compiler, follow the instructions below. A `Makef
 
 ### Prerequisites
 
-- A C compiler (e.g., GCC, Clang)
-- `make` utility
-- Hardware running on Apple Silicon Framework
+*   A C compiler (e.g., GCC, Clang)
+*   `make` utility
 
 ### Building the Compiler
 
